@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smooth Scroll Frames</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+          margin: 0;
+          height: 1000vh;
+          background: #141D3A;
+           overflow-x: hidden;
+           font-family: 'Inter', sans-serif;
+        }
+
+        canvas {
+          position: sticky;
+          top: 0;
+          width: 100vw;
+          height: 100vh;
+        }
+
+        .left-ui {
+  position: fixed;   /* 🔥 stays while scrolling */
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 35%;        /* 🔥 control width */
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  padding: 60px;
+  pointer-events: none; /* 🔥 allows scroll to pass through */
+}
+
+        .hero {
+  pointer-events: auto; /* enable interaction if needed */
+}
+
+.hero h1 {
+  font-size: 35px;
+  color: #fff;
+  margin: 0;
+}
+
+.hero h2 {
+  font-size: 16px;
+  color: #9aa4c7;
+  margin-top: 10px;
+}
+
+.hero p {
+  margin-top: -10px;
+  font-size: 10px;
+  color: #cbd3ff;
+  max-width: 400px;
+  line-height: 1.4;
+}
+
+        .info-card {
+  pointer-events: auto;
+   position: absolute;      /* 🔥 detach from flow */
+  bottom: 140px;            /* always inside screen */
+  left: 60px;
+
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(19px);
+
+  padding: 20px;
+  border-radius: 16px;
+
+  border: 1px solid rgba(255,255,255,0.1);
+
+  max-width: 390px;
+}
+
+.info-card h3 {
+  font-size: 10px;
+  margin: 0;
+  color: #fff;
+}
+
+.info-card p {
+  font-size: 10px;
+  margin-top: 10px;
+  color: #9aa4c7;
+}
+
+    </style>
+</head>
+
+<body>
+
+<div class="left-ui">
+
+    <div class="hero">
+        <h1>Prizmabrixx</h1>
+        <h2>Availability Tool</h2>
+        <p>
+            The availability tool shown in the interface is a smart, data-driven utility panel designed to give users a quick yet comprehensive understanding of a property’s current status, cost dynamics, and livability factors in one place; it seamlessly combines essential information like pricing, layout details (beds, baths, square footage), and building classification with deeper insights such as utility consumption (water, electricity, gas, AC), estimated monthly expenses, and built-in safety features, all presented in a clean, visually structured format that aligns with modern real estate dashboards; beyond static data, it integrates an interactive valuation calculator where users can adjust variables like loan term, interest rate, and down payment to instantly see estimated monthly costs, making financial planning intuitive and immediate; the inclusion of actionable elements like “request a tour” and “contact agent” transforms it from a passive display into an active decision-making tool, while the adjacent similar properties section provides contextual comparison to help users gauge market positioning; overall, this availability tool acts as a centralized control hub that blends visualization, interactivity, and real-time insights to streamline the property evaluation process and enhance user confidence in making informed decisions.
+        </p>
+    </div>
+
+    <div class="info-card">
+        <h3>Live Insights</h3>
+        <p>it seamlessly combines essential information like pricing, layout details (beds, baths, square footage), and building classification with deeper insights such as utility consumption (water, electricity, gas, AC), estimated monthly expenses, and built-in safety features, all presented in a clean, visually structured format that aligns with modern real estate dashboards;the inclusion of actionable elements like “request a tour” and “contact agent” transforms it from a passive display into an active decision-making tool, while the adjacent similar properties section provides contextual comparison to help users gauge market positioning; overall, this availability tool acts as a centralized control hub that blends visualization, interactivity, and real-time insights to streamline the property evaluation process and enhance user confidence in making informed decisions.</p>
+    </div>
+
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    // 🔥 HIGH DPI FIX (SHARPNESS BOOST)
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    ctx.scale(dpr, dpr);
+
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+
+    const frameCount = 640;
+    const images = new Array(frameCount);
+
+    // 🔥 STATE
+    let currentFrame = 0;
+    let targetFrame = 0;
+
+    // 🔥 LOAD FIRST FRAME FAST
+    const firstImage = new Image();
+    firstImage.src = "frame_0001.png";
+
+    firstImage.onload = () => {
+      ctx.drawImage(firstImage, 0, 0, canvas.width, canvas.height);
+    };
+
+    // 🔥 LAZY LOAD (only when needed)
+    function getImage(i) {
+      if (!images[i]) {
+        const img = new Image();
+        img.src = `frm/frame_${String(i + 1).padStart(4, '0')}.png`;
+        images[i] = img;
+      }
+      return images[i];
+    }
+
+    // 🔥 DRAW
+ function draw(index) {
+  const img = getImage(index);
+
+  if (img && img.complete && img.naturalWidth !== 0) {
+    const canvasWidth = canvas.clientWidth;
+    const canvasHeight = canvas.clientHeight;
+
+    const imgWidth = img.naturalWidth;
+    const imgHeight = img.naturalHeight;
+
+    const zoom = 0.98;
+
+    const scale = Math.min(
+      canvasWidth / imgWidth,
+      canvasHeight / imgHeight
+    ) * zoom;
+
+    const drawWidth = imgWidth * scale;
+    const drawHeight = imgHeight * scale;
+
+    const offsetX = 230; // 👉 now works
+    const offsetY = 0;
+
+    const x = (canvasWidth - drawWidth) / 2 + offsetX;
+    const y = (canvasHeight - drawHeight) / 2 + offsetY;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, x, y, drawWidth, drawHeight);
+  }
+}
+
+    // 🔥 ULTRA SMOOTH LOOP
+    function update() {
+      const scrollTop = window.scrollY;
+      const maxScroll = document.body.scrollHeight - window.innerHeight;
+
+      let progress = scrollTop / maxScroll;
+      progress = Math.min(Math.max(progress, 0), 1);
+
+      // 🎯 TARGET FRAME
+      targetFrame = progress * (frameCount - 1);
+
+      // 🔥 MAGIC: SMOOTH INTERPOLATION
+      currentFrame += (targetFrame - currentFrame) * 0.02;
+
+      draw(Math.floor(currentFrame));
+
+      requestAnimationFrame(update);
+    }
+
+    update();
+</script>
+
+</body>
+</html>
